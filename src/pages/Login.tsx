@@ -1,5 +1,6 @@
 import { ArrowLeft, ArrowRight, Loader2, Mail, MailCheck } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router'
 import { supabase } from '../api/supabaseClient'
 import Logo from '../components/Logo'
 
@@ -39,7 +40,9 @@ export default function Login() {
       <div aria-hidden="true" className="pointer-events-none absolute -top-40 left-1/2 size-[36rem] -translate-x-1/2 rounded-full bg-indigo-400/20 blur-3xl dark:bg-indigo-600/15" />
       <div className="relative w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
-          <Logo className="mb-4 size-14 drop-shadow-lg" />
+          <Link to="/" aria-label="Daily Checks home">
+            <Logo className="mb-4 size-14 drop-shadow-lg" />
+          </Link>
           <h1 className="text-2xl font-bold tracking-tight">Daily Checks</h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your home, office & project checklist, synced everywhere.</p>
         </div>
@@ -59,6 +62,11 @@ export default function Login() {
                 {busy ? 'Sending…' : 'Continue with email'}
                 {!busy && <ArrowRight className="size-4" />}
               </button>
+              <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+                New here? This creates your free account. By continuing you agree to the{' '}
+                <Link to="/terms" className="underline hover:text-slate-900 dark:hover:text-white">Terms</Link> and{' '}
+                <Link to="/privacy" className="underline hover:text-slate-900 dark:hover:text-white">Privacy Policy</Link>.
+              </p>
             </form>
           ) : (
             <form onSubmit={verify} className="space-y-4">
@@ -94,6 +102,9 @@ export default function Login() {
             </form>
           )}
         </div>
+        <Link to="/" className="btn-ghost mx-auto mt-6 flex w-fit text-xs">
+          <ArrowLeft className="size-3.5" /> Back to home
+        </Link>
       </div>
     </div>
   )

@@ -10,10 +10,12 @@ A personal daily checklist for home, office and personal projects — synced acr
 
 ### 1. Supabase project
 1. Create a free project at [supabase.com](https://supabase.com).
-2. **SQL Editor:** run the files in [`supabase/migrations/`](supabase/migrations/) in order (`0001_init.sql`, then `0002_hardening.sql`).
+2. **SQL Editor:** run the files in [`supabase/migrations/`](supabase/migrations/) in order (`0001_init.sql`, `0002_hardening.sql`, `0003_delete_account.sql`).
    (Or with the CLI: `npx supabase login`, `npx supabase link --project-ref <ref>`, `npx supabase db push`.)
 3. **Authentication → URL Configuration:** set *Site URL* to `http://localhost:5173`. Add your deployed URL to *Redirect URLs* later (exact URLs, no broad wildcards).
-4. **Lock it down:** once you've signed in on your devices, turn off *Authentication → Sign In / Providers → Allow new users to sign up*, and set the email OTP expiry to ~15 minutes.
+4. **Sign-ups:** set the email OTP expiry to ~15 minutes.
+   - *Public / free service:* keep *Authentication → Sign In / Providers → Allow new users to sign up* **on**. Raise *Authentication → Rate Limits → emails sent per hour* to fit your Resend plan, and consider enabling CAPTCHA (Turnstile) under *Attack Protection* (needs CSP changes in `public/_headers`).
+   - *Private use:* once you've signed in on your devices, turn sign-ups **off**.
 
 ### 2. Sign-in email (Resend SMTP)
 Supabase's built-in email sender is only for testing and is heavily rate-limited, so sign-in emails go through [Resend](https://resend.com).
@@ -54,6 +56,8 @@ npm run dev            # http://localhost:5173
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co   # Project Settings → API
 VITE_SUPABASE_ANON_KEY=<publishable / anon key>       # never the service_role / secret key
 ```
+
+Optional: `VITE_CONTACT_EMAIL` shows a contact address on the Privacy and Terms pages.
 
 Only variables prefixed with `VITE_` are sent to the browser. Keep any other secrets, like the Resend key, unprefixed.
 

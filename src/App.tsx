@@ -1,12 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, CheckCircle2, LogOut, Tags } from 'lucide-react'
+import { CalendarDays, CheckCircle2, Loader2, LogOut, Tags, Trash2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, Navigate, Route, Routes } from 'react-router'
+import { deleteAccount } from './api/account'
 import { isSupabaseConfigured, supabase } from './api/supabaseClient'
 import Logo from './components/Logo'
+import Modal from './components/Modal'
 import { useAuth } from './hooks/auth'
 import Categories from './pages/Categories'
 import History from './pages/History'
+import Landing from './pages/Landing'
+import { Privacy, Terms } from './pages/Legal'
 import Login from './pages/Login'
 import Setup from './pages/Setup'
 import Today from './pages/Today'
@@ -27,8 +31,26 @@ export default function App() {
         <Logo className="size-10 motion-safe:animate-pulse" />
       </div>
     )
-  if (!session) return <Login />
 
+  return (
+    <Routes>
+      {/* Legal pages use the public layout whether or not you're signed in */}
+      <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
+      {session ? (
+        <Route path="*" element={<AppShell email={session.user.email ?? ''} />} />
+      ) : (
+        <>
+          <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </>
+      )}
+    </Routes>
+  )
+}
+
+function AppShell({ email }: { email: string }) {
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col pb-24 sm:pb-8">
       <header className="sticky top-0 z-20 flex items-center gap-3 bg-slate-100/80 px-4 py-3 backdrop-blur-xl dark:bg-slate-950/80">
@@ -55,7 +77,7 @@ export default function App() {
             </NavLink>
           ))}
         </nav>
-        <AccountMenu email={session.user.email ?? ''} />
+        <AccountMenu email={email} />
       </header>
 
       <main className="flex-1 px-4 pt-1 pb-4">
@@ -96,6 +118,7 @@ export default function App() {
 function AccountMenu({ email }: { email: string }) {
   const qc = useQueryClient()
   const [open, setOpen] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -132,8 +155,53 @@ function AccountMenu({ email }: { email: string }) {
           <button className="btn-ghost w-full justify-start" onClick={signOut}>
             <LogOut className="size-4" /> Sign out
           </button>
+          <button className="btn-danger w-full justify-start" onClick={() => { setOpen(false); setConfirmDelete(true) }}>
+            <Trash2 className="size-4" /> Delete account
+          </button>
         </div>
       )}
+      {confirmDelete && <DeleteAccount email={email} onClose={() => setConfirmDelete(false)} />}
     </div>
+  )
+}
+
+function DeleteAccount({ email, onClose }: { email: string; onClose: () => void }) {
+  const qc = useQueryClient()
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const run = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await deleteAccount()
+      await supabase.auth.signOut({ scope: 'local' })
+      qc.clear()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong')
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Modal title="Delete account" onClose={onClose}>
+      <div className="space-y-4 text-sm">
+        <p className="text-slate-600 dark:text-slate-300">
+          This permanently deletes <span className="font-medium text-slate-900 dark:text-white">{email}</span> with all categories, tasks and history. It can't be undone.
+        </p>
+        <div>
+          <label className="label" htmlFor="confirm-delete">Type DELETE to confirm</label>
+          <input id="confirm-delete" className="input" autoComplete="off" value={typed} onChange={(e) => setTyped(e.target.value)} />
+        </div>
+        {error && <p className="text-red-600 dark:text-red-400">{error}</p>}
+        <div className="flex justify-end gap-2">
+          <button className="btn-ghost" onClick={onClose}>Cancel</button>
+          <button className="btn bg-red-600 text-white hover:bg-red-500" disabled={typed !== 'DELETE' || busy} onClick={run}>
+            {busy && <Loader2 className="size-4 animate-spin" />} Delete forever
+          </button>
+        </div>
+      </div>
+    </Modal>
   )
 }
