@@ -1,0 +1,12 @@
+// Cloudflare Workers static-assets deploy (`npx wrangler deploy`).
+// public/_headers (CSP etc.) is applied automatically from dist/.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "daily-checks",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    // Unknown paths (e.g. /history on reload) serve index.html.
+    "not_found_handling": "single-page-application"
+  }
+}
