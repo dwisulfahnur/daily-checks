@@ -95,4 +95,8 @@ src/components/
 
 ## Deploy
 
-Any static host works (Vercel, Netlify, Cloudflare Pages): build command `npm run build`, output `dist`, set the two `VITE_SUPABASE_*` env vars, and the SPA fallback + security headers (CSP, `X-Frame-Options`, …) come preconfigured: `vercel.json` for Vercel, `public/_headers` + `public/_redirects` for Netlify / Cloudflare Pages. Then in Supabase, set *Site URL* to the deployed URL (keep `http://localhost:5173` in *Redirect URLs* for local dev).
+**Cloudflare (Workers):** build command `npm run build`, deploy command `npx wrangler deploy`. Under *Settings → Build → Variables and secrets*, set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` and `NODE_VERSION=22`. [`wrangler.jsonc`](wrangler.jsonc) serves `dist` with an SPA fallback, and `public/_headers` adds the security headers (CSP, `X-Frame-Options`, …).
+
+**Vercel:** build command `npm run build`, output `dist`, the two `VITE_SUPABASE_*` env vars. [`vercel.json`](vercel.json) has the SPA fallback and headers.
+
+Then in Supabase, set *Site URL* to the deployed URL and add it to *Redirect URLs* (keep `http://localhost:5173` there for local dev).
